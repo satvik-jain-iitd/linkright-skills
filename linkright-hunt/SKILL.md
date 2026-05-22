@@ -24,6 +24,7 @@ Job discovery and opportunity intelligence. Covers the full loop: find → analy
 
 JOBS_DIR = `~/.linkright/jobs`
 MEMORY_DIR = `$JOBS_DIR/memory`
+HUNT_SCRIPTS = `~/.claude/skills/linkright-hunt/scripts`
 
 ---
 
@@ -115,8 +116,10 @@ JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 
 JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
 cd "$JOBS_DIR"
 
+HUNT_SCRIPTS="$HOME/.claude/skills/linkright-hunt/scripts"
+
 # Tier 2: job boards (LinkedIn guest + Indeed + Google + Naukri)
-python3 scripts/jobspy_scrape.py \
+python3 "$HUNT_SCRIPTS/jobspy_scrape.py" \
   --search-terms "<derived_terms>" \
   --sectors "<derived_sectors>" \
   --location "India" \
@@ -125,10 +128,10 @@ python3 scripts/jobspy_scrape.py \
   --results 25
 
 # Tier 1: ATS direct APIs (598 target companies)
-python3 scripts/scrape_jobs.py --workday-search "<derived_workday_search>"
+python3 "$HUNT_SCRIPTS/scrape_jobs.py" --workday-search "<derived_workday_search>"
 
 # Score new jobs (unscored only)
-python3 scripts/score_jobs.py --top 20
+python3 "$HUNT_SCRIPTS/score_jobs.py" --top 20
 ```
 
 If any script errors: show the exact error message + continue with remaining scripts. Do NOT abort the full run.

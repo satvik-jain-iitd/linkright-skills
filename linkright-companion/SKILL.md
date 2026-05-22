@@ -358,4 +358,6 @@ For each due entry, show:
 | diary_ingest.py | ✅ |
 | All 6 modules | ✅ |
 | ref_01_briefing_templates.md | ✅ |
+| ref_02_decision_journal.md | ✅ |
 | ref_03_rejection_framework.md | ✅ |
+| ref_04_offer_evaluation.md | ✅ |
