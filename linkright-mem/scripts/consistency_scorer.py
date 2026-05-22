@@ -3,7 +3,7 @@ consistency_scorer.py — Score profile signals against PM archetypes.
 
 Usage:
   python3 consistency_scorer.py --signals signals.md --facts facts.md --memory ~/.linkright/memory
-  python3 consistency_scorer.py --signals signals.md --archetype ai_enterprise_pm
+  python3 consistency_scorer.py --signals signals.md --archetype growth
 """
 
 import argparse
@@ -12,62 +12,72 @@ import re
 from pathlib import Path
 
 # Archetype required signals: {archetype: {signal: weight}}
-# weight: 1.0 = required, 0.6 = important, 0.3 = nice-to-have
+# weight: 1.0 = required, 0.7 = differentiating, 0.4 = nice-to-have
+# Names aligned with ref_02_signal_taxonomy.md, ref_03_archetype_requirements.md
 ARCHETYPE_SIGNALS = {
-    "ai_enterprise_pm": {
-        "systems_thinking":              1.0,
-        "ai_workflow_design":            1.0,
-        "enterprise_workflow_ownership": 1.0,
-        "stakeholder_leadership":        0.6,
-        "data_fluency":                  0.6,
-        "ambiguity_handling":            0.3,
-        "execution_rigor":               0.3,
-    },
-    "growth_pm": {
+    "growth": {
         "growth_experimentation":        1.0,
         "data_fluency":                  1.0,
-        "user_empathy":                  0.6,
-        "execution_rigor":               0.6,
-        "communication_clarity":         0.3,
-        "systems_thinking":              0.3,
+        "metric_definition":             1.0,
+        "product_vision":                0.7,
+        "user_empathy":                  0.7,
+        "systems_thinking":              0.7,
     },
-    "founding_pm": {
-        "zero_to_one_execution":         1.0,
-        "ambiguity_handling":            1.0,
-        "systems_thinking":              0.6,
-        "stakeholder_leadership":        0.6,
-        "execution_rigor":               0.6,
-        "data_fluency":                  0.3,
+    "0to1": {
+        "early_stage_experience":        1.0,
+        "product_vision":                1.0,
+        "discovery_rigor":               1.0,
+        "ambiguity_tolerance":           0.7,
+        "systems_thinking":              0.7,
+        "stakeholder_management":        0.7,
     },
-    "csm_implementation": {
-        "enterprise_workflow_ownership": 1.0,
-        "implementation_management":     1.0,
-        "stakeholder_leadership":        0.6,
-        "user_empathy":                  0.6,
-        "communication_clarity":         0.3,
-        "execution_rigor":               0.3,
+    "platform": {
+        "platform_experience":           1.0,
+        "technical_depth":               1.0,
+        "systems_thinking":              1.0,
+        "stakeholder_management":        0.7,
+        "data_fluency":                  0.7,
+        "outcome_ownership":             0.7,
     },
-    "analytics_pm": {
-        "data_fluency":                  1.0,
-        "systems_thinking":              0.6,
-        "execution_rigor":               0.6,
-        "communication_clarity":         0.6,
-        "user_empathy":                  0.3,
+    "enterprise": {
+        "enterprise_experience":         1.0,
+        "stakeholder_management":        1.0,
+        "go_to_market":                  1.0,
+        "outcome_ownership":             0.7,
+        "data_fluency":                  0.7,
+        "systems_thinking":              0.7,
     },
-    "consumer_pm": {
+    "consumer": {
         "user_empathy":                  1.0,
         "growth_experimentation":        1.0,
-        "communication_clarity":         0.6,
-        "execution_rigor":               0.6,
-        "data_fluency":                  0.3,
+        "discovery_rigor":               1.0,
+        "data_fluency":                  0.7,
+        "product_vision":                0.7,
+        "design_collaboration":          0.7,
     },
-    "general_pm": {
-        "execution_rigor":               1.0,
-        "stakeholder_leadership":        1.0,
-        "systems_thinking":              0.6,
-        "data_fluency":                  0.6,
-        "user_empathy":                  0.3,
-        "communication_clarity":         0.3,
+    "data_ai": {
+        "data_fluency":                  1.0,
+        "technical_depth":               1.0,
+        "systems_thinking":              1.0,
+        "metric_definition":             0.7,
+        "product_vision":                0.7,
+        "outcome_ownership":             0.7,
+    },
+    "design_led": {
+        "design_collaboration":          1.0,
+        "discovery_rigor":               1.0,
+        "product_vision":                1.0,
+        "user_empathy":                  0.7,
+        "systems_thinking":              0.7,
+        "outcome_ownership":             0.7,
+    },
+    "marketplace": {
+        "marketplace_experience":        1.0,
+        "growth_experimentation":        1.0,
+        "data_fluency":                  1.0,
+        "systems_thinking":              0.7,
+        "outcome_ownership":             0.7,
+        "metric_definition":             0.7,
     },
 }
 

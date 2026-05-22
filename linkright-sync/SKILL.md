@@ -90,7 +90,7 @@ Infer from JD (Gate 2 output) or ask user to confirm.
 Analyze JD inline (same pipeline as linkright-hunt Gate 3):
 
 **Step 1 — Archetype Detection**
-Which PM archetype? `ai_pm | enterprise_pm | growth_pm | platform_pm | consumer_pm | founding_pm | analytics_pm | csm_implementation`
+Which PM archetype? `growth | 0to1 | enterprise | platform | consumer | data_ai | design_led | marketplace`
 
 **Step 2 — Signal Extraction**
 - Primary signals: emphasized repeatedly or in headline
@@ -125,12 +125,12 @@ SIGNAL COVERAGE MAP — <company> (<archetype>)
 
 JD Primary Signals:
   systems_thinking        → Profile: STRONG (6 facts) ✓
-  ai_workflow_design      → Profile: MEDIUM (2 facts) △
-  stakeholder_leadership  → Profile: STRONG (5 facts) ✓
+  technical_depth         → Profile: MEDIUM (2 facts) △
+  stakeholder_management  → Profile: STRONG (5 facts) ✓
 
 JD Secondary Signals:
   data_fluency            → Profile: LOW (1 fact)    ✗ ← gap
-  execution_rigor         → Profile: STRONG (3 facts) ✓
+  outcome_ownership       → Profile: STRONG (3 facts) ✓
 
 GAP SIGNALS: data_fluency
 → "I see data_fluency is required but your profile has only 1 fact.
@@ -139,10 +139,7 @@ GAP SIGNALS: data_fluency
 
 User addresses gaps or confirms they don't have them. Proceed only after gap resolution.
 
-Also check vertical space budget:
-```bash
-python3 ~/.claude/skills/linkright-sync/scripts/validate_page_fit.py  # HTML only
-```
+Also check vertical space budget — run after first draft assembled (Gate 5), not here.
 
 ---
 
@@ -164,8 +161,7 @@ Show: recommended strategy + BRS scores for candidate bullets from mem.
 python3 ~/.claude/skills/linkright-sync/scripts/score_bullets.py \
   --facts ~/.linkright/memory/facts.md \
   --signals ~/.linkright/memory/signals.md \
-  --jd-signals '<primary_signals_json>' \
-  --output /tmp/brs_scores.json
+  --jd-signals '<primary_signals_json>'
 ```
 
 User approves strategy or overrides.
@@ -404,9 +400,9 @@ Template: `assets/template.html`
 | Cover letter (Gate 7) | ✅ |
 | linkright-mem integration (Gate 1+3) | ✅ — falls back to paste if mem empty |
 | linkright-hunt pipeline.json integration | ✅ |
-| `measure_width.py` | ⏳ copy from skill-updates/sync/ |
-| `score_bullets.py` | ⏳ |
-| `validate_contrast.py` | ⏳ |
-| `validate_page_fit.py` | ⏳ |
-| `ref_03_bullet_quality.md` (banned phrases) | ⏳ |
+| `measure_width.py` | ✅ |
+| `score_bullets.py` | ✅ |
+| `validate_contrast.py` | ✅ |
+| `validate_page_fit.py` | ✅ |
+| `ref_03_bullet_quality.md` (banned phrases) | ✅ |
 | `constraint_checker.py` from linkright-mem | ✅ shared |

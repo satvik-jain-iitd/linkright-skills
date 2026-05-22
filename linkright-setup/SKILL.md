@@ -403,7 +403,7 @@ hc "linkright-mem: init_memory.py"   "[ -f ~/.claude/skills/linkright-mem/script
 # linkright-hunt
 hc "linkright-hunt: jobs.db"         "[ -f ~/.linkright/jobs/db/jobs.db ]"                       "re-run step 5 above"
 hc "linkright-hunt: pipeline.json"   "[ -f ~/.linkright/jobs/memory/pipeline.json ]"              "re-run step 5 above"
-hc "linkright-hunt: scrape_jobs.py"  "[ -f ~/.linkright/jobs/scripts/scrape_jobs.py ] || [ -f ~/Downloads/*/scripts/scrape_jobs.py ]" "copy hunt scripts to ~/.linkright/jobs/scripts/" warn
+hc "linkright-hunt: scrape_jobs.py"  "[ -f ~/.claude/skills/linkright-hunt/scripts/scrape_jobs.py ]" "scripts missing from ~/.claude/skills/linkright-hunt/scripts/" warn
 
 # linkright-sync
 hc "linkright-sync: facts.md"        "[ -f ~/.linkright/memory/facts.md ]"                       "run /linkright-mem first"

@@ -80,7 +80,7 @@ curl -X POST https://www.linkedin.com/oauth/v2/accessToken \
 
 Response: `{"access_token": "...", "expires_in": 5183944}`
 
-Token expires in ~60 days. Store in `~/.linkright/linkedin_token.json` (not in git).
+Token expires in ~60 days. Store in `~/.linkright/.env` (not in git).
 
 ### Step 4 — Get Your Person URN
 
@@ -123,15 +123,11 @@ Success response: `201 Created` with `id` field = post URN.
 
 ## Token Storage Format
 
-Save to `~/.linkright/linkedin_token.json`:
-```json
-{
-  "access_token": "...",
-  "expires_at": "YYYY-MM-DD",
-  "person_urn": "urn:li:person:XXXX",
-  "client_id": "...",
-  "scope": "w_member_social"
-}
+Add to `~/.linkright/.env` (create if it doesn't exist):
+```bash
+LINKEDIN_ACCESS_TOKEN=YOUR_ACCESS_TOKEN_HERE
+LINKEDIN_PERSON_URN=urn:li:person:XXXX
+LINKEDIN_EXPIRES_AT=YYYY-MM-DD
 ```
 
 **NEVER commit this file.** Add to `.gitignore` if linkright-memory is a git repo.
@@ -157,10 +153,12 @@ When token expires: re-run Step 3 above to get a new access token.
 
 ## linkright-network Integration
 
-The `linkedin_post.py` script in scripts/ reads from `~/.linkright/linkedin_token.json`.
-Setup is manual (one-time OAuth flow above). After setup, posting is automated.
+The `linkedin_post.py` script reads from `~/.linkright/.env` (default `--token-file`).
+It looks for `LINKEDIN_ACCESS_TOKEN=<value>`. Setup is manual (one-time OAuth flow above).
+After setup, posting is automated via: `python3 linkedin_post.py --text '<post>' --confirm`
 
-If `linkedin_token.json` is missing or expired, `linkedin_post.py` will exit with:
-```
-ERROR: LinkedIn token missing or expired. Run setup: ref_04_linkedin_api.md
+If the token is missing or expired:
+```bash
+python3 linkedin_post.py --text 'test' --dry-run
+# FileNotFoundError: Token file not found → re-run Step 3 above
 ```

@@ -174,7 +174,7 @@ Analyze the JD text against the PM signal taxonomy. Run all 5 steps mentally:
 
 **Step 2a — Archetype Detection**
 Which archetype best fits this role?
-Options: ai_pm | enterprise_pm | growth_pm | platform_pm | consumer_pm | founding_pm | analytics_pm | csm_implementation
+Options: `growth | 0to1 | enterprise | platform | consumer | data_ai | design_led | marketplace`
 Output: primary_archetype, secondary_archetype (if mixed)
 
 **Step 2b — Signal Requirement Extraction**
@@ -184,7 +184,7 @@ Against Tier 1 (core PM), Tier 2 (archetype), Tier 3 (domain), Tier 4 (contextua
 - Mentioned signals: present but not core
 - Negative signals: role explicitly de-emphasizes these
 
-See `references/ref_02_signal_taxonomy.md` for full taxonomy (load when available).
+See `~/.claude/skills/linkright-mem/references/ref_02_signal_taxonomy.md` for full taxonomy (load when available).
 
 **Step 2c — Domain + Context**
 - Industry domain: AI / fintech / saas / consumer / gaming / etc.
@@ -395,10 +395,10 @@ Show: ATS type found + list of PM-relevant open roles.
 | Phase 1 semantic fit score (sentence-transformers) | ✅ Built — score_jobs.py |
 | Passive browser capture import | ✅ Built — import_browser_csv.py |
 | Excel export | ✅ Built — update_excel.py |
-| Tier 3 free APIs (Remotive/RemoteOK/YC WaaS) | ⏳ tier3_search.py |
-| JD signal extraction script | ⏳ jd_analyzer.py (Gate 3 uses inline analysis until built) |
-| Phase 2 signal-based fit score | ⏳ fit_scorer.py |
-| Pipeline CRUD script | ⏳ pipeline_update.py (Gate 3/4/5 use direct JSON until built) |
+| Tier 3 free APIs (Remotive/RemoteOK/YC WaaS) | ✅ tier3_search.py |
+| JD signal extraction script | ✅ jd_analyzer.py |
+| Phase 2 signal-based fit score | ✅ fit_scorer.py |
+| Pipeline CRUD script | ✅ pipeline_update.py |
 | Shortlist probability model | ⏳ shortlist_model.py |
 | ATS probe script | ⏳ ats_probe.py (Gate 6 uses inline probe until built) |
 

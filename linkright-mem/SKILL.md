@@ -372,8 +372,8 @@ echo "Snapshot saved."
 | `stale_detector.py` | ✅ Built |
 | `init_memory.py` | ✅ Built |
 | `ref_01_ingestion_rules.md` | ⏳ Load inline until built |
-| `ref_02_signal_taxonomy.md` | ⏳ Shared with linkright-hunt |
-| `ref_03_archetype_requirements.md` | ⏳ Used inline by consistency_scorer |
+| `ref_02_signal_taxonomy.md` | ✅ Built |
+| `ref_03_archetype_requirements.md` | ✅ Built |
 | sqlite-vec embeddings (>200 facts) | ⏳ Phase 2 |
 
 ---
@@ -385,7 +385,7 @@ When other skills call `linkright-mem`:
 ```bash
 # Get signals for archetype
 python3 ~/.claude/skills/linkright-mem/scripts/grep_memory.py \
-  --archetype "ai_enterprise_pm" \
+  --archetype "growth" \
   --memory ~/.linkright/memory \
   --format json
 

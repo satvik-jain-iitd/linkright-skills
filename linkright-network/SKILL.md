@@ -327,5 +327,5 @@ Output: table + 3 specific recommendations.
 | Cold email templates (ref_05) | ✅ |
 | linkedin_post.py (API) | ✅ |
 | constraint_check_post.py | ✅ |
-| LinkedIn OAuth setup (ref_04) | ⏳ |
-| POT library (ref_03) | ⏳ starts empty, user populates |
+| LinkedIn OAuth setup (ref_04) | ✅ |
+| POT library (ref_03) | ✅ (empty template — user populates) |

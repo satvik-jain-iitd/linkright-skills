@@ -14,41 +14,43 @@ from datetime import datetime
 from pathlib import Path
 
 # Signal taxonomy — keywords that map to signals
+# Names aligned with ref_02_signal_taxonomy.md, fit_scorer.py, jd_analyzer.py
 SIGNAL_KEYWORD_MAP = {
     "systems_thinking": [
         "redesign", "workflow", "architecture", "interconnect", "end-to-end",
         "system", "pipeline", "process", "framework", "infrastructure",
         "orchestrat", "integrat", "complex", "cross-functional",
     ],
-    "stakeholder_leadership": [
+    "stakeholder_management": [
         "stakeholder", "align", "executive", "leadership", "manage upward",
-        "cross-functional", "partner", "collaborate", "present", "influence",
+        "cross-functional", "partner", "collaborate", "influence",
         "without authority", "ministry", "c-suite", "vp", "director",
     ],
-    "execution_rigor": [
-        "deliver", "ship", "launch", "on time", "sprint", "pi ", "roadmap",
-        "milestone", "zero spillover", "deployment", "release", "agile",
-        "scrum", "velocity", "OKR", "metric", "track",
+    "outcome_ownership": [
+        "deliver", "ship", "launch", "on time", "sprint", "roadmap",
+        "milestone", "deployment", "release", "okr", "own", "accountab",
+        "p&l", "end-to-end ownership",
     ],
     "data_fluency": [
         "data", "analytics", "sql", "dashboard", "insight", "metric",
         "kpi", "report", "analysis", "query", "model", "dataset",
         "a/b test", "experiment", "measure",
     ],
-    "ambiguity_handling": [
+    "ambiguity_tolerance": [
         "ambiguous", "undefined", "0 to 1", "zero to one", "new market",
         "first principles", "greenfield", "pioneer", "define scope",
         "uncertain", "early stage", "no playbook",
     ],
-    "ai_workflow_design": [
+    "technical_depth": [
         "ai", "llm", "genai", "generative", "nlp", "machine learning",
         "ml", "rag", "embedding", "prompt", "model evaluation", "agent",
-        "automation", "root cause", "taxonomy", "classification",
+        "api", "system design", "architecture", "infra", "engineering",
+        "automation", "technical", "backend", "frontend",
     ],
-    "enterprise_workflow_ownership": [
+    "enterprise_experience": [
         "enterprise", "b2b", "saas", "onboarding", "implementation",
-        "client", "customer success", "account", "workflow", "adoption",
-        "time to value", "ttv", "platform", "integration",
+        "client", "customer success", "account", "adoption",
+        "time to value", "ttv", "integration", "procurement", "compliance",
     ],
     "growth_experimentation": [
         "growth", "experiment", "a/b", "funnel", "conversion", "retention",
@@ -59,17 +61,44 @@ SIGNAL_KEYWORD_MAP = {
         "user research", "usability", "interview", "feedback", "pain point",
         "user need", "customer", "persona", "journey", "ux", "delight",
     ],
-    "communication_clarity": [
-        "present", "communicate", "write", "document", "spec", "prd",
-        "brief", "narrative", "story", "explain", "translate", "simplif",
+    "product_vision": [
+        "vision", "strategy", "roadmap strategy", "direction", "north star",
+        "product strategy", "long-term", "define", "what to build",
+        "product philosophy", "bet", "opportunity",
     ],
-    "zero_to_one_execution": [
+    "discovery_rigor": [
+        "user research", "customer discovery", "qualitative", "interview",
+        "jobs to be done", "problem definition", "hypothesis", "validate",
+        "research", "discovery", "insight",
+    ],
+    "design_collaboration": [
+        "design", "figma", "wireframe", "prototype", "ux", "design review",
+        "design system", "usability", "information architecture",
+    ],
+    "go_to_market": [
+        "go-to-market", "gtm", "launch", "pricing", "positioning",
+        "channel", "market entry", "sales enablement", "beta",
+    ],
+    "metric_definition": [
+        "define metric", "north star metric", "okr", "success criteria",
+        "kpi", "set the metric", "own the metric", "instrumentation",
+    ],
+    "early_stage_experience": [
         "found", "built from scratch", "created", "launched", "solo",
         "0 to 1", "zero to one", "startup", "mvp", "first version",
+        "seed", "series a", "early-stage", "founding",
     ],
-    "implementation_management": [
-        "implement", "deploy", "onboard", "configure", "integrate",
-        "rollout", "go-live", "setup", "migration", "transition",
+    "influence_without_authority": [
+        "without authority", "influence", "alignment", "drove consensus",
+        "no direct reports", "cross-org", "persuade", "buy-in",
+    ],
+    "platform_experience": [
+        "platform team", "developer experience", "internal platform",
+        "api product", "developer tools", "infrastructure product",
+    ],
+    "marketplace_experience": [
+        "marketplace", "two-sided", "supply", "demand", "gmv",
+        "take rate", "liquidity", "gig", "commerce",
     ],
 }
 

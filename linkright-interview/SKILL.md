@@ -174,7 +174,7 @@ Runs on every story before save.
 ```bash
 python3 ~/.claude/skills/linkright-interview/scripts/constraint_validator.py \
   --text '<story_text>' \
-  --constraints ~/.linkright/user_setup.md
+  --setup ~/.linkright/user_setup.md
 ```
 
 Manual checks (if script unavailable):
@@ -779,6 +779,6 @@ Cascade: Oracle Ollama → Groq → Cerebras → Gemini free tier → fallback t
 | 3-layer signal scoring via signal_weights.yaml | ✅ |
 | A/V Gemini handoff | ✅ |
 | linkright-mem integration | ✅ |
-| constraint_validator.py | ⏳ build |
-| story_saver.py | ⏳ build |
-| question_bank_generator.py | ⏳ build |
+| constraint_validator.py | ✅ |
+| story_saver.py | ✅ |
+| question_bank_generator.py | ✅ |

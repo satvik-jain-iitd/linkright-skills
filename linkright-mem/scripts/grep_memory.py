@@ -5,7 +5,7 @@ Returns ranked results for skills querying profile memory.
 Usage:
   python3 grep_memory.py --query "stakeholder alignment" --memory ~/.linkright/memory --top 10
   python3 grep_memory.py --signal "systems_thinking" --memory ~/.linkright/memory --format json
-  python3 grep_memory.py --archetype "ai_enterprise_pm" --memory ~/.linkright/memory --format json
+  python3 grep_memory.py --archetype "growth" --memory ~/.linkright/memory --format json
   python3 grep_memory.py --query "strength:high" --memory ~/.linkright/memory
 """
 
@@ -15,17 +15,24 @@ import re
 from pathlib import Path
 
 
+# Names aligned with ref_02_signal_taxonomy.md, ref_03_archetype_requirements.md
 ARCHETYPE_SIGNALS = {
-    "ai_enterprise_pm": ["systems_thinking", "ai_workflow_design", "enterprise_workflow_ownership",
-                          "stakeholder_leadership", "data_fluency"],
-    "growth_pm":        ["growth_experimentation", "data_fluency", "user_empathy", "execution_rigor"],
-    "founding_pm":      ["zero_to_one_execution", "ambiguity_handling", "systems_thinking",
-                          "stakeholder_leadership", "execution_rigor"],
-    "csm_implementation": ["enterprise_workflow_ownership", "implementation_management",
-                            "stakeholder_leadership", "user_empathy"],
-    "analytics_pm":     ["data_fluency", "systems_thinking", "execution_rigor", "communication_clarity"],
-    "consumer_pm":      ["user_empathy", "growth_experimentation", "communication_clarity"],
-    "general_pm":       ["execution_rigor", "stakeholder_leadership", "systems_thinking", "data_fluency"],
+    "growth":      ["growth_experimentation", "data_fluency", "metric_definition",
+                    "product_vision", "user_empathy", "systems_thinking"],
+    "0to1":        ["early_stage_experience", "product_vision", "discovery_rigor",
+                    "ambiguity_tolerance", "systems_thinking", "stakeholder_management"],
+    "platform":    ["platform_experience", "technical_depth", "systems_thinking",
+                    "stakeholder_management", "data_fluency", "outcome_ownership"],
+    "enterprise":  ["enterprise_experience", "stakeholder_management", "go_to_market",
+                    "outcome_ownership", "data_fluency", "systems_thinking"],
+    "consumer":    ["user_empathy", "growth_experimentation", "discovery_rigor",
+                    "data_fluency", "product_vision", "design_collaboration"],
+    "data_ai":     ["data_fluency", "technical_depth", "systems_thinking",
+                    "metric_definition", "product_vision", "outcome_ownership"],
+    "design_led":  ["design_collaboration", "discovery_rigor", "product_vision",
+                    "user_empathy", "systems_thinking", "outcome_ownership"],
+    "marketplace": ["marketplace_experience", "growth_experimentation", "data_fluency",
+                    "systems_thinking", "outcome_ownership", "metric_definition"],
 }
 
 
