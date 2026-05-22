@@ -21,7 +21,7 @@ description: |
 SKILL_DIR   = `~/.claude/skills/linkright-companion`
 SETUP       = `~/.linkright/user_setup.md`
 MEM_DIR     = `~/.linkright/memory`
-PIPELINE    = `~/Downloads/Mission Job Switch/job scraping/memory/pipeline.json`
+PIPELINE    = `~/.linkright/jobs/memory/pipeline.json`
 DECISIONS   = `~/.linkright/memory/decisions/decision_log.md`
 
 ---

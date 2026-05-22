@@ -18,7 +18,7 @@ SUBJECT: [specific topic] — quick question from a [brief signal]
 
 Examples:
   "AI onboarding flows — question from a PM building in this space"
-  "Enterprise workflow design — curiosity from an AmEx PM"
+  "Enterprise workflow design — curiosity from a {{current_title}}"
   NOT: "Would love to connect" / "Quick intro" / "Job inquiry"
 
 BODY:

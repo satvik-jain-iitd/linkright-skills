@@ -15,8 +15,8 @@ description: |
 
 SKILL_DIR  = `~/.claude/skills/linkright-sync`
 MEM_DIR    = `~/.linkright/memory`
-JOBS_DB    = `~/Downloads/Mission Job Switch/job scraping/db/jobs.db`
-PIPELINE   = `~/Downloads/Mission Job Switch/job scraping/memory/pipeline.json`
+JOBS_DB    = `~/.linkright/jobs/db/jobs.db`
+PIPELINE   = `~/.linkright/jobs/memory/pipeline.json`
 
 ---
 
@@ -236,8 +236,8 @@ Max 3 compile cycles, then rewrite
 \documentclass[a4paper,10pt]{resume}   % ALWAYS a4paper, NEVER letterpaper
 
 \begin{rSection}{EXPERIENCE}
-  {\bf Senior Associate PM} \hfill {Jan 2023 -- Present} \\
-  {\it American Express} \hfill {\it Gurugram, India}
+  {\bf [CURRENT_TITLE]} \hfill {[START_DATE] -- Present} \\
+  {\it [CURRENT_COMPANY]} \hfill {\it [LOCATION]}
   \begin{itemize}
     \itemsep -3pt {}
     \item {Bullet with \textbf{keyword} and result.}

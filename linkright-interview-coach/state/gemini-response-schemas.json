@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gemini Response Schemas (3 stages)",
+  "description": "Validation schemas for user-pasted Gemini JSON responses. One schema per stage.",
+  "definitions": {
+    "stage1_video": {
+      "type": "object",
+      "required": ["session_id", "stage", "scoring", "visual_verdict"],
+      "properties": {
+        "session_id": {"type": "string"},
+        "stage": {"type": "string", "const": "video_only"},
+        "scoring": {
+          "type": "object",
+          "required": ["posture", "hand_gestures", "eye_contact", "facial_expressions", "energy_projection", "environment", "confidence_cues"],
+          "properties": {
+            "posture": {"$ref": "#/definitions/score_with_evidence"},
+            "hand_gestures": {"$ref": "#/definitions/score_with_evidence"},
+            "eye_contact": {"$ref": "#/definitions/score_with_evidence"},
+            "facial_expressions": {"$ref": "#/definitions/score_with_evidence"},
+            "energy_projection": {"$ref": "#/definitions/score_with_evidence"},
+            "environment": {"$ref": "#/definitions/score_with_evidence"},
+            "confidence_cues": {"$ref": "#/definitions/score_with_evidence"}
+          }
+        },
+        "top_3_strengths": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "top_3_gaps": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "visual_verdict": {
+          "type": "string",
+          "enum": ["Visually Senior", "Visually Mid", "Visually Junior", "Visually Anxious"]
+        },
+        "specific_drills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["problem", "drill_30s"],
+            "properties": {
+              "problem": {"type": "string"},
+              "drill_30s": {"type": "string"}
+            }
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "stage2_audio": {
+      "type": "object",
+      "required": ["session_id", "stage", "scoring", "vocal_verdict"],
+      "properties": {
+        "session_id": {"type": "string"},
+        "stage": {"type": "string", "const": "audio_only"},
+        "scoring": {
+          "type": "object",
+          "required": ["pace_wpm", "pace_variation", "pause_quality", "filler_density_per_min", "filler_top_3", "verbosity", "tone_modulation", "energy_projection_vocal", "authority", "breath_control", "volume_stability"],
+          "properties": {
+            "pace_wpm": {"type": "number", "minimum": 0, "maximum": 300},
+            "pace_variation": {"$ref": "#/definitions/score_with_evidence"},
+            "pause_quality": {"$ref": "#/definitions/score_with_evidence"},
+            "filler_density_per_min": {"type": "number", "minimum": 0},
+            "filler_top_3": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+            "verbosity": {"$ref": "#/definitions/score_with_evidence"},
+            "tone_modulation": {"$ref": "#/definitions/score_with_evidence"},
+            "energy_projection_vocal": {"$ref": "#/definitions/score_with_evidence"},
+            "authority": {"$ref": "#/definitions/score_with_evidence"},
+            "breath_control": {"$ref": "#/definitions/score_with_evidence"},
+            "volume_stability": {"$ref": "#/definitions/score_with_evidence"}
+          }
+        },
+        "top_3_strengths": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "top_3_gaps": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "vocal_verdict": {
+          "type": "string",
+          "enum": ["Vocally Senior", "Vocally Mid", "Vocally Junior", "Vocally Anxious"]
+        },
+        "specific_drills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["problem", "drill_30s"],
+            "properties": {
+              "problem": {"type": "string"},
+              "drill_30s": {"type": "string"}
+            }
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "stage3_transcript": {
+      "type": "object",
+      "required": ["session_id", "stage", "scoring", "content_verdict", "missed_opportunities"],
+      "properties": {
+        "session_id": {"type": "string"},
+        "stage": {"type": "string", "const": "transcript_content"},
+        "scoring": {
+          "type": "object",
+          "required": ["storytelling_structure", "specificity_density", "ai_smell_density", "constraints_named_count", "tradeoffs_named_count", "framework_usage", "authenticity", "signal_density"],
+          "properties": {
+            "storytelling_structure": {"$ref": "#/definitions/score_with_quotes"},
+            "specificity_density": {
+              "type": "object",
+              "required": ["score"],
+              "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 5},
+                "examples_of_specifics": {"type": "array", "items": {"type": "string"}},
+                "density_percent": {"type": "number", "minimum": 0, "maximum": 100}
+              }
+            },
+            "ai_smell_density": {
+              "type": "object",
+              "required": ["score"],
+              "properties": {
+                "score": {"type": "integer", "minimum": 0, "maximum": 5},
+                "generic_phrases_found": {"type": "array", "items": {"type": "string"}},
+                "density_percent": {"type": "number", "minimum": 0, "maximum": 100}
+              }
+            },
+            "constraints_named_count": {"type": "integer", "minimum": 0},
+            "constraints_named_examples": {"type": "array", "items": {"type": "string"}},
+            "tradeoffs_named_count": {"type": "integer", "minimum": 0},
+            "tradeoffs_named_examples": {"type": "array", "items": {"type": "string"}},
+            "framework_usage": {"$ref": "#/definitions/score_with_evidence"},
+            "authenticity": {"$ref": "#/definitions/score_with_evidence"},
+            "signal_density": {
+              "type": "object",
+              "required": ["product_sense", "execution", "strategy", "analytical", "leadership", "ai_judgment"],
+              "properties": {
+                "product_sense": {"type": "integer", "minimum": 0, "maximum": 5},
+                "execution": {"type": "integer", "minimum": 0, "maximum": 5},
+                "strategy": {"type": "integer", "minimum": 0, "maximum": 5},
+                "analytical": {"type": "integer", "minimum": 0, "maximum": 5},
+                "leadership": {"type": "integer", "minimum": 0, "maximum": 5},
+                "ai_judgment": {"type": "integer", "minimum": 0, "maximum": 5}
+              }
+            }
+          }
+        },
+        "top_3_strengths": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "top_3_gaps": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3},
+        "content_verdict": {
+          "type": "string",
+          "enum": ["Content Senior", "Content Mid", "Content Junior", "Content Generic"]
+        },
+        "missed_opportunities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["moment", "what_was_said", "what_could_have_been_said_at_their_level"],
+            "properties": {
+              "moment": {"type": "string"},
+              "what_was_said": {"type": "string"},
+              "what_could_have_been_said_at_their_level": {"type": "string"}
+            }
+          },
+          "minItems": 3
+        }
+      }
+    },
+    "score_with_evidence": {
+      "type": "object",
+      "required": ["score", "evidence"],
+      "properties": {
+        "score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "evidence": {"type": "string"}
+      }
+    },
+    "score_with_quotes": {
+      "type": "object",
+      "required": ["score"],
+      "properties": {
+        "score": {"type": "integer", "minimum": 0, "maximum": 5},
+        "evidence_quotes": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/definitions/stage1_video"},
+    {"$ref": "#/definitions/stage2_audio"},
+    {"$ref": "#/definitions/stage3_transcript"}
+  ]
+}

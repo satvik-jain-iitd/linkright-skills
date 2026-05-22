@@ -72,8 +72,38 @@ ls ~/.linkright/user_setup.md 2>/dev/null || echo "MISSING"
 ```
 I need a few things to set up your profile:
 1. Paste your resume text (or give file path)
-2. What roles are you targeting? (e.g. "AI PM at B2C startups in India")
-3. Anything you never want mentioned? (companies, projects, anything off-limits)
+2. What roles are you targeting? (e.g. "Senior Engineer at fintech startups" or "PM at Series B consumer apps")
+3. What sectors/industries? (e.g. FINTECH, CONSUMER_AI, ALL)
+4. Anything you never want mentioned? (companies, projects, anything off-limits)
+```
+
+Then create `~/.linkright/user_setup.md` from the answers using this schema:
+
+```yaml
+# ~/.linkright/user_setup.md
+user:
+  name: ""
+  email: ""
+  current_title: ""          # e.g. "Senior PM", "Staff Engineer", "Data Scientist"
+  current_company: ""
+  years_experience: 0
+  current_ctc: ""            # format: "X LPA" or "$Xk/yr"
+
+target:
+  roles: []                  # e.g. ["PM", "Engineering Manager", "Data Scientist"]
+  sectors: []                # e.g. ["FINTECH", "CONSUMER_AI", "ALL"] — drives hunt sector filter
+  locations: []              # e.g. ["India", "Remote"]
+  target_ctc_min: ""
+  target_ctc_target: ""
+
+paths:
+  jobs_dir: "~/.linkright/jobs"    # all hunt + sync scripts use this
+
+constraints:
+  hard_constraints: []       # e.g. ["no relocate", "no night shifts"]
+  do_not_mention: []         # companies, projects, people — never surface in any output
+  topics_to_avoid_in_posts: []
+  companies_not_to_comment_on: []
 ```
 
 3. If found — load it, proceed with ingestion of resume mentioned inside.
@@ -224,8 +254,8 @@ Return ranked results: matching facts + signals + any cached expressions.
 Format:
 ```
 FACTS matching "stakeholder alignment":
-  FACT_003: "Managed alignment across engineering, support, success" (role: PM @ Sprinklr, 2023) — signal: stakeholder_leadership
-  FACT_019: "Presented roadmap to 40+ ministry stakeholders" (role: PM @ Qatar, 2023)
+  FACT_003: "Managed alignment across engineering, support, success" (role: [TITLE] @ [CURRENT_COMPANY], 2023) — signal: stakeholder_leadership
+  FACT_019: "Presented roadmap to 40+ ministry stakeholders" (role: [TITLE] @ [PREVIOUS_PROJECT], 2023)
 
 SIGNALS with strength ≥ medium:
   stakeholder_leadership (high) — 4 supporting facts

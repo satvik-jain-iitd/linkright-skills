@@ -1,20 +1,20 @@
 ---
 name: linkright-hunt
 description: |
-  LinkRight's job discovery and opportunity intelligence layer. Finds PM-adjacent jobs across
-  ATS APIs, job boards, and free APIs; scores against Satvik's profile; analyzes JDs through
-  PM signal taxonomy; tracks opportunities through pipeline; adapts recommendations from
+  LinkRight's job discovery and opportunity intelligence layer. Finds jobs across
+  ATS APIs, job boards, and free APIs; scores against user's profile; analyzes JDs through
+  signal taxonomy; tracks opportunities through pipeline; adapts recommendations from
   application outcomes.
 
   Two modes:
     Mode A — Batch Discovery: NL description → param interpretation → run scrapers → ranked results
     Mode B — JD Intelligence: paste URL or text → signal extraction → fit score → pipeline save
 
-  Use when user says: /linkright-hunt, "find PM jobs", "search jobs", "analyze this JD",
+  Use when user says: /linkright-hunt, "find jobs", "search jobs", "analyze this JD",
   "save to pipeline", "record outcome", "view pipeline", "probe this company's ATS",
   "what should I apply to", "job search", or any job-hunting request.
 
-  B2C sectors ONLY: CONSUMER_AI, CAREER_NAV_B2C, GAMING, SOCIAL_COMMERCE.
+  Target sectors loaded from user_setup.md (target_sectors field). Default: ALL.
   NEVER automate LinkedIn account interaction. NEVER apply on behalf of user.
 ---
 
@@ -22,7 +22,7 @@ description: |
 
 Job discovery and opportunity intelligence. Covers the full loop: find → analyze → track → learn.
 
-JOBS_DIR = `/Users/satvikjain/Downloads/Mission Job Switch/job scraping`
+JOBS_DIR = `~/.linkright/jobs`
 MEMORY_DIR = `$JOBS_DIR/memory`
 
 ---
@@ -35,7 +35,7 @@ MEMORY_DIR = `$JOBS_DIR/memory`
 4. ALWAYS show both scores separately (fit score + shortlist probability)
 5. ALWAYS explain score components — "78% fit: 4/5 primary signals matched"
 6. ALWAYS preserve full JD text in pipeline (needed by linkright-sync downstream)
-7. B2C hard requirement — gaming, career-nav, consumer AI, social commerce ONLY
+7. Sectors filter — read target_sectors from user_setup.md (default: ALL)
 
 ---
 
@@ -69,7 +69,7 @@ User gives free-form description. Derive these params:
 | Signal in description | Derived param |
 |---|---|
 | Role type / title keywords | `--search-terms` (see mapping table below) |
-| Industry / domain | `--sectors` (CONSUMER_AI / CAREER_NAV_B2C / GAMING / SOCIAL_COMMERCE / ALL) |
+| Industry / domain | `--sectors` (from user_setup.md target_sectors, or user-specified; default: ALL) |
 | "India", "remote", "US open" | `--location` + `--remote` flag |
 | "recent", "last week", "today" | `--hours-old` (24 / 72 / 168) |
 | "founding", "early-stage", "startup" | hours-old → 168 (founding roles are rare, wider window) |
@@ -111,7 +111,9 @@ Wait for y / adjustment before running.
 ### Step 3 — Run Scripts
 
 ```bash
-cd "/Users/satvikjain/Downloads/Mission Job Switch/job scraping"
+JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 | sed 's/.*jobs_dir: *//;s/["\x27]//g;s/ *$//' | sed "s|~|$HOME|g")
+JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
+cd "$JOBS_DIR"
 
 # Tier 2: job boards (LinkedIn guest + Indeed + Google + Naukri)
 python3 scripts/jobspy_scrape.py \
@@ -136,7 +138,9 @@ If any script errors: show the exact error message + continue with remaining scr
 After scoring, query and display top 20:
 
 ```bash
-cd "/Users/satvikjain/Downloads/Mission Job Switch/job scraping"
+JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 | sed 's/.*jobs_dir: *//;s/["\x27]//g;s/ *$//' | sed "s|~|$HOME|g")
+JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
+cd "$JOBS_DIR"
 sqlite3 db/jobs.db "
   SELECT title, company, location, sector, role_category,
          relevance_score, is_remote, job_url
@@ -191,18 +195,29 @@ See `references/ref_02_signal_taxonomy.md` for full taxonomy (load when availabl
 - Mirror vocabulary: exact terms to use in resume/cover letter
 
 **Step 2e — Gap Analysis**
-Compare required signals vs Satvik's known strengths:
-Strong: systems_thinking, stakeholder_leadership, data_fluency, ai_workflow_design, execution_rigor,
-        enterprise_workflow_ownership, implementation_management, b2b_buyer_psychology (from Sprinklr+AmEx)
-Moderate: growth_experimentation, consumer signals
-Weak: viral_mechanics, content_ecosystem, pure_consumer_growth
+Load user's signal strengths from linkright-mem:
+```bash
+JOBS_DIR=$(python3 -c "
+import re, pathlib
+f = pathlib.Path.home() / '.linkright/user_setup.md'
+m = re.search(r'jobs_dir:\s*[\"\'"]?(.+?)[\"\'"]?\s*$', f.read_text(), re.M) if f.exists() else None
+print(m.group(1).strip() if m else str(pathlib.Path.home() / '.linkright/jobs'))
+")
+python3 ~/.claude/skills/linkright-mem/scripts/grep_memory.py \
+  --query "strength:high strength:medium strength:low" \
+  --memory ~/.linkright/memory \
+  --format json
+```
+Map each required signal → HIGH/MEDIUM/LOW/UNKNOWN based on returned signals.
 
 ### Step 3 — Phase 1 Fit Score
 
 Embed this JD against profile embedding:
 
 ```bash
-cd "/Users/satvikjain/Downloads/Mission Job Switch/job scraping"
+JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 | sed 's/.*jobs_dir: *//;s/["\x27]//g;s/ *$//' | sed "s|~|$HOME|g")
+JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
+cd "$JOBS_DIR"
 # Insert JD into DB temporarily, score it, show result
 python3 -c "
 import sqlite3, numpy as np
@@ -229,8 +244,8 @@ If sentence-transformers unavailable, skip score and note "install sentence-tran
 Present in this order:
 1. Archetype: [primary] (+ [secondary] if mixed)
 2. Fit score: [N]/100 (Phase 1 semantic)
-3. Primary signals required: [list with Satvik's strength level: HIGH/MEDIUM/LOW]
-4. Gap signals: [signals role requires but Satvik is weak on]
+3. Primary signals required: [list with user's strength level: HIGH/MEDIUM/LOW/UNKNOWN]
+4. Gap signals: [signals role requires but user is weak on or unknown]
 5. Red flags: [any found]
 6. Recruiter vocabulary to mirror: [key phrases verbatim]
 7. Recommendation: STRONG FIT / GOOD FIT / STRETCH / MISMATCH with 1-sentence reason
@@ -242,7 +257,9 @@ Ask: "Save this to your opportunity pipeline? (y/n)"
 On y:
 
 ```bash
-mkdir -p "/Users/satvikjain/Downloads/Mission Job Switch/job scraping/memory"
+JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 | sed 's/.*jobs_dir: *//;s/["\x27]//g;s/ *$//' | sed "s|~|$HOME|g")
+JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
+mkdir -p "$JOBS_DIR/memory"
 ```
 
 Write opportunity to `memory/pipeline.json` (append to array or create file):
@@ -304,7 +321,9 @@ Note: `shortlist_model.py` not yet built. Outcomes are stored now; model runs wh
 ## Gate 5 — Pipeline View (mode=e)
 
 ```bash
-cat "/Users/satvikjain/Downloads/Mission Job Switch/job scraping/memory/pipeline.json" 2>/dev/null || echo "Pipeline empty — no opportunities saved yet."
+JOBS_DIR=$(grep -E 'jobs_dir:' ~/.linkright/user_setup.md 2>/dev/null | head -1 | sed 's/.*jobs_dir: *//;s/["\x27]//g;s/ *$//' | sed "s|~|$HOME|g")
+JOBS_DIR="${JOBS_DIR:-$HOME/.linkright/jobs}"
+cat "$JOBS_DIR/memory/pipeline.json" 2>/dev/null || echo "Pipeline empty — no opportunities saved yet."
 ```
 
 Render by stage with days-in-stage. Flag any application >14 days with no outcome.
@@ -355,7 +374,7 @@ Show: ATS type found + list of PM-relevant open roles.
 | NO LinkedIn account automation | Never use auth LinkedIn API, headless browser with session, or any account-level action |
 | NO applying on behalf | Surface and score only — user applies manually |
 | NO pipeline write without preview | Always show summary before writing to pipeline.json |
-| B2C sectors only | CONSUMER_AI, CAREER_NAV_B2C, GAMING, SOCIAL_COMMERCE — not Shopify/Salesforce/N8N/Instantly |
+| Sectors filter | loaded from user_setup.md target_sectors (default: ALL) |
 | LinkedIn guest OK | `linkedin.com/jobs-guest/` via JobSpy only — stop if rate limited |
 | Both scores always separate | Never merge fit + shortlist into one opaque score |
 | Full JD preserved | Don't truncate in pipeline.json — linkright-sync needs the full text |
