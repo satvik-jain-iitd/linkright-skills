@@ -8,18 +8,19 @@ LinkRight turns Claude AI into a personal career assistant that remembers your e
 
 ## What it does
 
-Think of LinkRight as 8 specialists working together:
+Think of LinkRight as 9 specialists working together:
 
 | Skill | Plain English |
 |---|---|
 | `/linkright-setup` | First-time setup wizard. Run this once to get everything working. |
 | `/linkright-mem` | Your career memory. Feed it your resume once — it remembers everything forever. |
 | `/linkright-hunt` | Job finder. Searches 500+ companies' job boards and scores each job against your profile. |
-| `/linkright-sync` | Resume writer. Takes any job description → outputs a tailored, ATS-safe resume in minutes. |
-| `/linkright-push` | Publisher. Puts your resume on GitHub Pages with a shareable link. Version-controlled. |
+| `/linkright-sync` | Resume writer. Takes any job description and outputs a tailored, ATS-safe resume in minutes. LaTeX/Overleaf by default, HTML optional. |
+| `/linkright-push` | Publisher. Puts your resume on GitHub Pages with a shareable link. For LaTeX, a GitHub Action auto-compiles your `.tex` to PDF on push. Version-controlled. |
 | `/linkright-interview` | Interview coach. Builds your story bank, runs mock interviews with voice, scores you like FAANG. |
-| `/linkright-companion` | Daily briefing. Every morning: what to do today, where your applications stand, what to follow up on. |
-| `/linkright-network` | Content + outreach. Writes LinkedIn posts and cold emails in your own voice. Never posts without your approval. |
+| `/linkright-companion` | Daily briefing. Every morning, what to do today, where your applications stand, what to follow up on. |
+| `/linkright-network` | Content and outreach. Writes LinkedIn posts and cold emails in your own voice, grounded in your real career facts and voice-scored before you ever see a draft. Never posts without your approval. |
+| `/linkright-portfolio` | Proof-of-work builder. Turns your experience into case studies, Proof-of-Thinking write-ups, company research briefs, and a shareable GitHub Pages portfolio site. |
 
 ---
 
@@ -102,6 +103,7 @@ It searches, scores, and shows you a ranked list.
 /linkright-interview ← practice for your interview
 /linkright-companion ← daily check-in
 /linkright-network   ← LinkedIn posts + cold outreach
+/linkright-portfolio ← build shareable proof-of-work
 ```
 
 ---
@@ -178,8 +180,8 @@ Skills communicate via shared files in `~/.linkright/`. Each skill reads what th
 ```
 linkright-mem writes → facts.md + signals.md
 linkright-hunt reads → user_setup.md, writes → jobs.db + pipeline.json
-linkright-sync reads → facts.md + pipeline.json, writes → resume HTML/PDF
-linkright-push reads → resume files, writes → GitHub Pages URL
+linkright-sync reads → facts.md + pipeline.json, writes → resume .tex/PDF (HTML optional)
+linkright-push reads → resume files, writes → GitHub Pages URL (Action compiles .tex → PDF)
 linkright-interview reads → facts.md + pipeline.json
 ```
 
