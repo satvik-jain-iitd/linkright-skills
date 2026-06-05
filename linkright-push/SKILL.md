@@ -26,8 +26,8 @@ PIPELINE    = `~/.linkright/jobs/memory/pipeline.json`
 ## Absolute Rules
 
 - NEVER push to public repos without user seeing exactly what's being published
-- ALWAYS validate HTML (ATS scan + width check) before public resume push
-- ALWAYS generate PDF alongside HTML on every resume push
+- ALWAYS validate before a public resume push. For HTML, ATS scan plus width check. For LaTeX, run the constraint check, the resume was already gated in linkright-sync
+- For HTML, generate the PDF locally before push. For LaTeX, the GitHub Action compiles the PDF, never generate it locally
 - ALWAYS tag every resume push: `resume-<company-slug>-<role-slug>-<YYYY-MM-DD>`
 - NEVER make linkright-memory repo public — contains salary targets, rejections, hard constraints
 - ALWAYS show `git diff --stat` before any memory commit
@@ -80,46 +80,56 @@ AskUserQuestion:
 
 ### Action A — Push Resume
 
-**Inputs:** company name + role title (required). Resume file path (HTML).
+**Inputs:** company name + role title (required). Resume file path. LaTeX `.tex` is the default, HTML `.html` is optional.
 
-If file path not provided: scan `~/Downloads` and current dir for `resume_*.html` files, ask user to confirm.
+If file path not provided: scan `~/Downloads` and the current dir for `resume_*.tex` first, then `resume_*.html`, ask the user to confirm. Detect the format by extension and branch on it.
 
+**Common, both paths:**
 ```bash
-# Step 1: Validate
-python3 ~/.claude/skills/linkright-push/scripts/validate_html.py '<html_path>'
+# Constraint check on the resume content
 python3 ~/.claude/skills/linkright-mem/scripts/constraint_checker.py \
-  --text "$(cat '<html_path>')" \
+  --text "$(cat '<resume_path>')" \
   --constraints ~/.linkright/user_setup.md
+# If it fails → show violations → stop. NEVER push an invalid resume.
 
-# If validation fails → show violations → stop. NEVER push invalid resume.
-
-# Step 2: Slugify
 COMPANY_SLUG="<company-name-lowercase-hyphenated>"
 ROLE_SLUG="<role-title-lowercase-hyphenated>"
 DATE="$(date +%Y-%m-%d)"
 TAG="resume-${COMPANY_SLUG}-${ROLE_SLUG}-${DATE}"
+DEST="roles/${COMPANY_SLUG}-${ROLE_SLUG}"
+```
 
-# Step 3: Generate PDF
+**LaTeX path (default).** No local LaTeX needed, the GitHub Action compiles the PDF.
+```bash
+cd ~/linkright-resume
+mkdir -p "${DEST}"
+cp '<tex_path>' "${DEST}/resume.tex"
+cp '<tex_path>' resume.tex                       # latest at root
+# tiny viewer that opens the compiled PDF
+printf '<!doctype html><meta http-equiv="refresh" content="0; url=resume.pdf">' > "${DEST}/index.html"
+git add -A
+git commit -m "Resume ${COMPANY_SLUG} ${ROLE_SLUG} ${DATE}"
+git tag "${TAG}"
+git push && git push --tags
+# The "Compile resumes to PDF" action builds resume.pdf next to the .tex on push.
+```
+
+**HTML path (optional).**
+```bash
+python3 ~/.claude/skills/linkright-push/scripts/validate_html.py '<html_path>'
 python3 ~/.claude/skills/linkright-push/scripts/generate_pdf.py '<html_path>'
-# Output: same dir as HTML, same name + .pdf
-
-# Step 4: Push
 bash ~/.claude/skills/linkright-push/scripts/push_resume.sh \
-  '<html_path>' \
-  '<pdf_path>' \
-  "${COMPANY_SLUG}" \
-  "${ROLE_SLUG}" \
-  "${DATE}"
+  '<html_path>' '<pdf_path>' "${COMPANY_SLUG}" "${ROLE_SLUG}" "${DATE}"
 ```
 
 Show user:
 ```
-✓ Pushed: roles/<company>-<role>/index.html
-✓ Pushed: roles/<company>-<role>/resume.pdf
+✓ Pushed: roles/<company>-<role>/   (resume.tex; the Action compiles resume.pdf)
 ✓ Tagged: resume-<company>-<role>-<date>
 
 Public URL: https://<username>.github.io/linkright-resume/roles/<company>-<role>/
 Latest:     https://<username>.github.io/linkright-resume/
+PDF (after the Action finishes, ~1-2 min): .../roles/<company>-<role>/resume.pdf
 ```
 
 ---

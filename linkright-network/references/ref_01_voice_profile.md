@@ -30,6 +30,30 @@ STRUCTURE:   Hook → Tension/Insight → Take → (optional) So what?
 
 ---
 
+## Grounded Voice, read the user's profile first
+
+Before drafting or scoring, load the user's grounded voice profile, the one built from their interview plus a stylometry pass, from their instance, for example `~/.linkright/memory` or the user's voice profile file. That profile supplies the specifics, the signature phrases, the sentence rhythm range, the hook signature, and the user's own banned words with their swaps. The rules here are the generic structure, the user's profile makes it personal. If no grounded profile exists yet, use the generic rules and offer to build one.
+
+## Structural Voice Signals, apply on top of the Five Rules
+
+These are the measured, hard to fake signals. They are generic mechanics, the user's profile fills in the specifics.
+
+**6. Open on a hard fact or an uncomfortable truth.** No wind up, lead with the thing that stops the scroll.
+
+**7. Use at least one contrast pair, X not Y.** For example, experience not tenure, fear not confidence. This is the most reliable voice move.
+
+**8. Build long, then close on a short principle.** A longer build, then a clipped one line principle to end, not a sell.
+
+**9. Keep the rhythm bursty.** A short line next to a long one, never uniform length. This sentence length variation is the human, anti machine, signal.
+
+**10. Carry the user's hook signature.** If the profile defines one, the last line of the hook ends on it exactly.
+
+**11. Map the user's banned words to their swaps.** From the profile, for example leverage to edge, ensure to made sure. The user's raw speech may use these, the written post does not.
+
+**12. No hedging.** No maybe, arguably, or might. Own the call.
+
+---
+
 ## Forbidden Openings (auto-fail voice score)
 
 - "Excited to share" / "Humbled to announce" / "I am proud to" / "Thrilled to"

@@ -3,8 +3,9 @@ name: linkright-sync
 description: |
   Build pixel-perfect, brand-customized, ATS-safe resumes and cover letters tailored
   to a specific job opportunity. Pulls profile from linkright-mem (facts + signals).
-  Pulls JD from linkright-hunt pipeline or paste. Two output paths: HTML (Tailwind,
-  GitHub Pages) or Overleaf/LaTeX (FAANGPath template, XeLaTeX).
+  Pulls JD from linkright-hunt pipeline or paste. Default and recommended output is
+  Overleaf/LaTeX (FAANGPath template, XeLaTeX, a GitHub Action compiles it to PDF on Pages).
+  HTML (Tailwind, GitHub Pages) stays as an optional second format.
 
   Use when user says: /linkright-sync, "tailor my resume", "build resume for [company]",
   "optimize my resume", "cover letter", "job application", "I'm applying to [X]",
@@ -22,7 +23,7 @@ PIPELINE   = `~/.linkright/jobs/memory/pipeline.json`
 
 ## Absolute Rules (read before every gate)
 
-- ALWAYS ask HTML vs Overleaf as the VERY FIRST question — no exceptions
+- ALWAYS confirm the output format as the VERY FIRST question. LaTeX/Overleaf is the default and recommended, use HTML only if the user explicitly asks
 - ALWAYS generate all content in B&W (Gates 0–5) — colors ONLY at Gate 6
 - ALWAYS run width measurement on every bullet — never eyeball
 - NEVER set `height: 1.2em; overflow: hidden` on any bullet container
@@ -43,11 +44,11 @@ PIPELINE   = `~/.linkright/jobs/memory/pipeline.json`
 AskUserQuestion:
   question: "Which output format?"
   options:
-    A) HTML — browser-rendered, Tailwind CSS, pixel-perfect, GitHub Pages ready
-    B) Overleaf/LaTeX — FAANGPath template, XeLaTeX, compiles to PDF
+    A) Overleaf/LaTeX (recommended, default), FAANGPath template, XeLaTeX, a GitHub Action compiles to PDF on Pages
+    B) HTML (optional), browser-rendered, Tailwind CSS, GitHub Pages
 ```
 
-Document format choice. All downstream behavior branches from this.
+LaTeX is the default. If the user states no preference, use LaTeX. Document the choice. All downstream behavior branches from this.
 
 ---
 

@@ -40,18 +40,47 @@ EMAIL_REF   = `~/.claude/skills/linkright-network/references/ref_05_cold_email_t
 
 ---
 
-## Gate 0 — Load Profile Signals
+## Knowledge Loading, must follow versus situational
 
-Before any content generation, pull signals to know what competencies to demonstrate:
+The split is declared in `knowledge.yaml` next to this skill. That file is the source of truth, read it if unsure what to load when.
+
+Always load, every run. The absolute rules, the voice profile and grounded signals, the constraint check, the voice score. These are small and deterministic, they must never be missed.
+
+Retrieve on demand, only when the mode fires. Post templates and the POT library in post mode, the LinkedIn API reference in schedule mode, the cold email templates in outreach mode. For the POT library, pull only the entries relevant to the topic, not the whole file.
+
+Career memory is not a flat load, it is queried. Gate 0 pulls only the strengths and facts relevant to this post through the hybrid search in linkright-mem, honouring the credibility tags. This keeps the skill lean as the references and the vault grow.
+
+---
+
+## Gate 0, Load Career Memory (contract aligned)
+
+Before any content, pull only the career truth relevant to this post, not the whole vault. This follows the Career Memory contract, read Strengths and the Facts behind them, and honour the credibility tags.
+
+1. Pull strengths relevant to the topic, plus the top strengths overall.
 
 ```bash
+# strengths and facts relevant to the post topic
 python3 ~/.claude/skills/linkright-mem/scripts/grep_memory.py \
-  --query "strength:high" \
-  --memory ~/.linkright/memory \
-  --format json
+  --query "<topic terms>" --memory ~/.linkright/memory --format json
+# the facts behind a chosen strength
+python3 ~/.claude/skills/linkright-mem/scripts/grep_memory.py \
+  --signal "<strength_name>" --memory ~/.linkright/memory --format json
+# top strengths overall, fallback
+python3 ~/.claude/skills/linkright-mem/scripts/grep_memory.py \
+  --query "strength:high" --memory ~/.linkright/memory --format json
 ```
 
-If mem empty → proceed with user-provided context.
+2. Honour the credibility tag on every fact before using it.
+- credibility do_not_use, never use this fact in any post, drop it.
+- credibility supporting_role_only, frame as supported or contributed to, never as owned.
+- confidence thin or directional, use with care, never as a hard claim or number.
+- prefer confirmed, higher confidence facts.
+
+3. Carry these constraints into the draft and the constraint check. A post may only stand on confirmed facts that are not do_not_use.
+
+If mem empty, proceed with user provided context.
+
+This is retrieval, query first, not a whole vault load, so the memory can grow without bloating the post step.
 
 ---
 
@@ -92,6 +121,19 @@ AskUserQuestion:
 Ask: "What topic, company, or signal should this post feature?"
 
 For calendar (B): Ask for goals + target companies + signals to emphasize this month.
+
+---
+
+## Post Gate 1.5, Strategy Brief
+
+Before research or drafting, build a short brief so the post is aimed, not just well written. Read the user's audience and positioning from their instance, config or memory, ask only what is missing.
+
+- Reader and pain. The one primary reader this post is for, and the exact pain or desire it touches. From the user's audience profile.
+- Positioning ladder. How this post ladders to the user's through line, the long arc they want to be known for.
+- Format for reach. Pick the format the current feed rewards for this topic. Document carousels and native video lead, a plain text post works for a sharp opinion, an outbound link loses reach. Match the format to the topic.
+- Differentiation. Check the last several posts so this is not a repeat angle or topic.
+
+Output a four line brief, reader and pain, pillar, format, angle. The draft step builds from it.
 
 ---
 
@@ -153,11 +195,45 @@ python3 ~/.claude/skills/linkright-network/scripts/voice_scorer.py '<post_text>'
 
 ---
 
+## Post Gate 4.5, Editorial Review
+
+A higher bar than the voice score. Read the post the way the feed will, then check the risk.
+
+Three lenses, all must clear.
+- Scroll stopper. The open breaks the pattern inside the first two lines, before the fold.
+- Trust builder. The post makes the reader believe the author, real evidence and a real voice, not claims.
+- Action driver. There is a real reason to comment, save, or follow.
+
+Risk check, for any post that names or tears down a real company or person.
+- Every sharp claim is sourced from the Post Gate 2 research, or framed clearly as the user's opinion.
+- No invented quote, stat, or motive about a named party.
+- Numbers are real and sourced, or the user's own and consistent.
+- Honour the memory credibility tags, nothing tagged do_not_use, supporting role framed as supported.
+
+If any lens fails, rewrite. If the risk check fails, fix the line or cut it, never ship an unbacked claim about a real party.
+
+---
+
 ## Post Gate 5 — Constraint Check
 
 Read SETUP: `topics_to_avoid_in_posts`, `companies_not_to_comment_on`, `do_not_mention`.
 
 Flag any violation. Block delivery until resolved.
+
+---
+
+## Post Gate 5.5, Media Asset (optional)
+
+Most posts do better with a visual, a document carousel leads reach. Offer one, skip if the user wants text only.
+
+1. Match the format from the Strategy Brief. Carousel for a step by step or a data story, a single image for a hook or a stat, none for a short take.
+2. Write the media script.
+   - Carousel, slide by slide. Slide one is the hook, one idea per middle slide, last slide a soft follow prompt, never an outbound link. One palette, one type, one grid.
+   - Single image, the message, the text overlay, the mood.
+3. Render the asset in the sandbox if possible, otherwise hand the script to the user's image tool. Keep the user's brand colours and a small handle on every visual.
+4. Add alt text for each image, and captions for any video, they help reach and access.
+
+Output the asset files alongside the post. No outbound link inside the asset.
 
 ---
 
@@ -179,6 +255,18 @@ python3 ~/.claude/skills/linkright-network/scripts/linkedin_post.py \
 ```
 
 NEVER execute the POST without showing the exact API call to user first.
+
+---
+
+## Post Gate 7, Engagement Plan
+
+The first sixty minutes decide reach, and comments weigh far more than likes. Hand the user a first hour plan with the post.
+
+- Post time. The best window for the user's audience, from their past results if known, otherwise a strong general morning slot. One concrete time.
+- Seed first comment. Write the user's own first comment, in their voice, a real question tied to the post, to open the thread. The same voice rules and the constraint check apply to the comment too.
+- First hour replies. Reply fast in the first hour. Prioritise the readers the user most wants. Reply angles that add a point, not just thanks. Never break the voice.
+
+Output the plan with the post. Never post the seed comment automatically, the user posts it right after the post goes live.
 
 ---
 

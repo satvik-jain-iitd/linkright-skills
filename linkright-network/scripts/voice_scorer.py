@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import re
 import sys
 
@@ -154,6 +155,103 @@ def score_criterion_5(text: str) -> tuple[int, str]:
     return 1, "Readable but not distinctly personal — ground it in your specific experience"
 
 
+# ---------------------------------------------------------------------------
+# Grounded voice signals. Measured, hard-to-fake checks. Optional config from
+# the user's voice profile makes the banned-word and signature checks personal.
+# Backward compatible: with no config, those two checks are skipped.
+# ---------------------------------------------------------------------------
+
+_SENT_SPLIT = re.compile(r"[.!?‼]+")
+
+_CONTRAST_PATTERNS = [
+    r"\bnot\b[^.?!]{1,40}\bbut\b",
+    r"\brather than\b",
+    r"\binstead of\b",
+    r"\b\w+\s+not\s+\w+\b",
+]
+
+
+def load_voice_config(path=None) -> dict:
+    """Optional grounded-voice config. Returns {} if none found.
+
+    Shape: {"signature": "‼️", "banned_words": {"leverage": "edge", "ensure": "made sure"}}
+    """
+    candidates = [path, os.path.expanduser("~/.linkright/voice_profile.json")]
+    for p in candidates:
+        if p and os.path.exists(p):
+            try:
+                with open(p, encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                return {}
+    return {}
+
+
+def _sentence_lengths(text: str):
+    sents = [s.strip() for s in _SENT_SPLIT.split(text) if s.strip()]
+    return [len(s.split()) for s in sents]
+
+
+def check_burstiness(text: str):
+    lens = _sentence_lengths(text)
+    if len(lens) < 3:
+        return 1, "Too few sentences to judge rhythm"
+    mean = sum(lens) / len(lens)
+    std = (sum((l - mean) ** 2 for l in lens) / len(lens)) ** 0.5
+    cv = std / mean if mean else 0
+    spread = max(lens) - min(lens)
+    if cv >= 0.5 and spread >= 8:
+        return 2, f"Bursty rhythm, reads human (cv {cv:.2f}, spread {spread} words)"
+    if cv >= 0.3:
+        return 1, f"Some variation (cv {cv:.2f}) — push shorter and longer lines"
+    return 0, f"Flat, uniform sentences read machine made (cv {cv:.2f})"
+
+
+def check_contrast(text: str):
+    for pat in _CONTRAST_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE):
+            return 2, "Has a contrast pair, X not Y"
+    return 0, "No contrast pair — add one, X not Y"
+
+
+def check_banned_words(text: str, config: dict):
+    banned = config.get("banned_words", {}) if config else {}
+    if not banned:
+        return None, "No banned-word list configured — skipped"
+    tl = text.lower()
+    hits = [w for w in banned if re.search(r"\b" + re.escape(w.lower()) + r"\b", tl)]
+    if hits:
+        swaps = ", ".join(f"{w} to {banned[w]}" for w in hits)
+        return 0, f"Banned word(s): {', '.join(hits)} — swap {swaps}"
+    return 2, "No banned words"
+
+
+def check_signature(text: str, config: dict):
+    sig = config.get("signature") if config else None
+    if not sig:
+        return None, "No hook signature configured — skipped"
+    lines = [l for l in text.splitlines() if l.strip()]
+    hook = "\n".join(lines[:2])
+    if sig in hook:
+        return 2, f"Hook carries the signature {sig}"
+    return 0, f"Hook is missing the signature {sig}"
+
+
+def grounded_signals(text: str, config: dict) -> dict:
+    b_s, b_r = check_burstiness(text)
+    c_s, c_r = check_contrast(text)
+    bw_s, bw_r = check_banned_words(text, config)
+    sg_s, sg_r = check_signature(text, config)
+    checks = [
+        {"signal": "Bursty rhythm, anti machine", "score": b_s, "reason": b_r},
+        {"signal": "Contrast pair, X not Y", "score": c_s, "reason": c_r},
+        {"signal": "Banned words", "score": bw_s, "reason": bw_r},
+        {"signal": "Hook signature", "score": sg_s, "reason": sg_r},
+    ]
+    hard_fail = (bw_s == 0) or (sg_s == 0)
+    return {"checks": checks, "hard_fail": hard_fail}
+
+
 def score(text: str) -> dict:
     c1, r1 = score_criterion_1(text)
     c2, r2 = score_criterion_2(text)
@@ -180,6 +278,8 @@ def main():
     p.add_argument("text", nargs="?", default=None)
     p.add_argument("--stdin", action="store_true")
     p.add_argument("--format", default="text", choices=["text", "json"])
+    p.add_argument("--voice-config", default=None,
+                   help="path to the user's voice_profile.json (signature, banned_words)")
     args = p.parse_args()
 
     if args.stdin or (args.text is None):
@@ -191,6 +291,9 @@ def main():
         p.error("No post text provided")
 
     result = score(text)
+    config = load_voice_config(args.voice_config)
+    result["grounded"] = grounded_signals(text, config)
+    result["passes_all"] = result["passes"] and not result["grounded"]["hard_fail"]
 
     if args.format == "json":
         print(json.dumps(result, indent=2))
@@ -202,11 +305,24 @@ def main():
     for b in result["breakdown"]:
         bar = "●" * b["score"] + "○" * (b["max"] - b["score"])
         print(f"  {bar}  {b['criterion']:<30} {b['score']}/{b['max']}  — {b['reason']}")
+
+    print("\nGROUNDED VOICE SIGNALS:")
+    for g in result["grounded"]["checks"]:
+        sc = g["score"]
+        mark = "—" if sc is None else ("●●" if sc == 2 else ("●○" if sc == 1 else "○○"))
+        print(f"  {mark}  {g['signal']:<28} {g['reason']}")
     print()
+
+    if result["passes_all"]:
+        print("VERDICT: ships ✓  (voice quality and grounded signals both clear)")
+    elif result["grounded"]["hard_fail"]:
+        print("VERDICT: blocked ✗  (a grounded hard check failed, banned word or missing signature)")
+    else:
+        print("VERDICT: rewrite ✗  (voice score below threshold)")
 
     if not result["passes"]:
         weak = sorted(result["breakdown"], key=lambda x: x["score"])[:2]
-        print("Fix these first:")
+        print("\nFix these first:")
         for w in weak:
             print(f"  [{w['criterion']}] {w['reason']}")
 

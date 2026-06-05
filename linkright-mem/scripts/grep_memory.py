@@ -83,37 +83,117 @@ def parse_signals_md(path: Path) -> list[dict]:
     return sigs
 
 
+# ---------------------------------------------------------------------------
+# Optional semantic layer. Uses fastembed, the same library as the CLI. If it
+# is not installed, retrieval silently falls back to keyword only. No cloud,
+# no API cost, runs locally on CPU.
+# ---------------------------------------------------------------------------
+_EMBEDDER = None
+_EMBED_TRIED = False
+
+
+def get_embedder():
+    global _EMBEDDER, _EMBED_TRIED
+    if _EMBED_TRIED:
+        return _EMBEDDER
+    _EMBED_TRIED = True
+    try:
+        from fastembed import TextEmbedding
+        _EMBEDDER = TextEmbedding()  # default small local model
+    except Exception:
+        _EMBEDDER = None
+    return _EMBEDDER
+
+
+def _cosine(a, b) -> float:
+    try:
+        import numpy as np
+        a = np.asarray(a, dtype="float32")
+        b = np.asarray(b, dtype="float32")
+        na, nb = float(np.linalg.norm(a)), float(np.linalg.norm(b))
+        return float(np.dot(a, b) / (na * nb)) if na and nb else 0.0
+    except Exception:
+        dot = sum(x * y for x, y in zip(a, b))
+        na = sum(x * x for x in a) ** 0.5
+        nb = sum(y * y for y in b) ** 0.5
+        return dot / (na * nb) if na and nb else 0.0
+
+
 def score_relevance(text: str, query_terms: list[str]) -> int:
     text_lower = text.lower()
     return sum(1 for t in query_terms if t.lower() in text_lower)
 
 
+def _embed_texts(texts: list[str]):
+    """Return a list of embedding vectors, or None if embedding is unavailable."""
+    emb = get_embedder()
+    if emb is None or not texts:
+        return None
+    try:
+        return list(emb.embed(texts))
+    except Exception:
+        return None
+
+
 def search(query: str, facts: list[dict], signals: list[dict], top: int = 10) -> dict:
-    # Handle special queries
+    # Contract: never surface a fact the user told us not to use.
+    facts = [f for f in facts if f.get("credibility", "").strip().lower() != "do_not_use"]
+
+    # Handle special queries (pure filter, no ranking needed)
     if query.startswith("strength:"):
         strength_filter = query.split(":")[1].strip()
         matched_signals = [s for s in signals if s.get("strength") == strength_filter]
-        return {"facts": [], "signals": matched_signals[:top]}
+        return {"facts": [], "signals": matched_signals[:top], "mode": "filter"}
 
     terms = query.lower().split()
+
+    fact_texts = [f.get("text", "") + " " + f.get("role", "") for f in facts]
+    sig_texts = [s.get("name", "") + " " + s.get("description", "") + " " + s.get("label", "")
+                 for s in signals]
+
+    # Keyword score, normalized 0..1 by the number of query terms so it blends
+    # cleanly with cosine similarity.
+    n_terms = max(len(terms), 1)
+    kw_facts = [score_relevance(t, terms) / n_terms for t in fact_texts]
+    kw_sigs = [score_relevance(t, terms) / n_terms for t in sig_texts]
+
+    # Optional semantic layer. Same fastembed model as the CLI, local CPU, no cost.
+    mode = "keyword"
+    sem_facts = [0.0] * len(facts)
+    sem_sigs = [0.0] * len(signals)
+    q_emb = _embed_texts([query])
+    if q_emb is not None:
+        qv = q_emb[0]
+        f_embs = _embed_texts(fact_texts) if fact_texts else []
+        s_embs = _embed_texts(sig_texts) if sig_texts else []
+        if f_embs is not None and s_embs is not None:
+            sem_facts = [_cosine(qv, e) for e in f_embs]
+            sem_sigs = [_cosine(qv, e) for e in s_embs]
+            mode = "hybrid"
+
+    # Blend. In hybrid mode weight keyword and semantic evenly; in keyword mode
+    # the semantic term is zero so this reduces to pure keyword ranking.
+    w_sem = 0.5 if mode == "hybrid" else 0.0
+    w_kw = 1.0 - w_sem if mode == "hybrid" else 1.0
+
     scored_facts = []
-    for f in facts:
-        score = score_relevance(f.get("text", "") + " " + f.get("role", ""), terms)
-        if score > 0:
-            scored_facts.append((score, f))
+    for i, f in enumerate(facts):
+        blended = w_kw * kw_facts[i] + w_sem * sem_facts[i]
+        if blended > 0:
+            scored_facts.append((blended, f))
     scored_facts.sort(key=lambda x: -x[0])
 
     scored_signals = []
-    for s in signals:
-        sig_text = s.get("name", "") + " " + s.get("description", "") + " " + s.get("label", "")
-        score = score_relevance(sig_text, terms)
-        if score > 0:
-            scored_signals.append((score, s))
+    for i, s in enumerate(signals):
+        blended = w_kw * kw_sigs[i] + w_sem * sem_sigs[i]
+        if blended > 0:
+            scored_signals.append((blended, s))
     scored_signals.sort(key=lambda x: -x[0])
 
     return {
         "facts":   [f for _, f in scored_facts[:top]],
         "signals": [s for _, s in scored_signals[:top]],
+        "mode":    mode,
     }
 
 
@@ -168,7 +248,7 @@ def main():
         if args.format == "json":
             print(json.dumps(result, indent=2))
         else:
-            print(f"\nFACTS matching '{args.query}':")
+            print(f"\nFACTS matching '{args.query}'  (retrieval: {result.get('mode','keyword')}):")
             for f in result["facts"]:
                 print(f"  {f['id']}: {f['text']}  ({f.get('role','')})")
             print(f"\nSIGNALS matching '{args.query}':")
