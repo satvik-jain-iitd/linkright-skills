@@ -14,8 +14,22 @@ description: |
 
 # LinkRight Memory
 
-MEMORY_DIR = `~/.linkright/memory`
-SKILL_DIR  = `~/.claude/skills/linkright-mem`
+MEMORY_DIR  = `~/.linkright/memory`            # derived markdown view, what the skills read
+PROFILE_DIR = `~/.linkright/profile`           # CLI v2 canonical store (facts.jsonl, signals.jsonl)
+SKILL_DIR   = `~/.claude/skills/linkright-mem`
+
+---
+
+## Canonical source
+
+The CLI v2 store at `PROFILE_DIR` is the single source of truth when it exists,
+written by `linkright onboard`, `linkright enrich`, and `linkright diary`. The
+markdown at `MEMORY_DIR` is a derived, human-readable, git-vault-friendly view.
+
+This skill keeps the two in lockstep. Before any read it refreshes the markdown
+from the canonical jsonl (Gate 0). To add or change memory when the CLI store
+exists, use the CLI so the canonical source stays authoritative. The inline
+ingest and edit gates below are the fallback for setups without the CLI.
 
 ---
 
@@ -29,6 +43,24 @@ SKILL_DIR  = `~/.claude/skills/linkright-mem`
 6. ALWAYS surface conflicts — never silently overwrite
 7. NEVER generate resume bullets or stories here — that's linkright-sync/interview/portfolio
 8. One fact = one specific, grounded claim. No superlatives. No vague generalizations.
+9. When the CLI store exists it is canonical. Refresh markdown from it (Gate 0) and route new ingestion through `linkright onboard`, not a direct markdown write.
+
+---
+
+## Gate 0 — Sync from canonical store
+
+If the CLI v2 store exists, refresh the derived markdown first, so every read and
+search below sees the latest canonical state:
+
+```bash
+if [ -f ~/.linkright/profile/facts.jsonl ]; then
+  python3 ~/.claude/skills/linkright-mem/scripts/export_from_cli.py \
+    --profile ~/.linkright/profile --memory ~/.linkright/memory
+fi
+```
+
+No CLI store, no-op. Skill-only setups keep using the markdown directly through
+the gates below.
 
 ---
 
@@ -368,7 +400,8 @@ echo "Snapshot saved."
 | `fact_extractor.py` | ✅ Built |
 | `signal_deriver.py` | ✅ Built |
 | `consistency_scorer.py` | ✅ Built |
-| `grep_memory.py` | ✅ Built |
+| `grep_memory.py` | ✅ Built (hybrid keyword + optional semantic) |
+| `export_from_cli.py` | ✅ Built (derives markdown from CLI canonical jsonl) |
 | `stale_detector.py` | ✅ Built |
 | `init_memory.py` | ✅ Built |
 | `ref_01_ingestion_rules.md` | ⏳ Load inline until built |
@@ -379,6 +412,19 @@ echo "Snapshot saved."
 ---
 
 ## Cross-Skill API
+
+The markdown at `MEMORY_DIR` is derived from the CLI canonical store. If the CLI
+store may have changed since the last read, refresh first so consumers do not see
+stale memory:
+
+```bash
+[ -f ~/.linkright/profile/facts.jsonl ] && \
+  python3 ~/.claude/skills/linkright-mem/scripts/export_from_cli.py >/dev/null 2>&1
+```
+
+The durable fix is to call `export_from_cli.py` at the end of the CLI write
+commands (`onboard`, `enrich`, `diary`) so the markdown is always fresh; until
+that lands, consumers refresh on read.
 
 When other skills call `linkright-mem`:
 
