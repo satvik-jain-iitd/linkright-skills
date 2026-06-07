@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 .env
+
+# build.sh output, the assembled plugin bundle. Never committed on main;
+# it is published to the `release` branch instead (see build.sh).
+dist/

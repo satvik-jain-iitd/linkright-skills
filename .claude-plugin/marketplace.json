@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "linkright",
+  "owner": {
+    "name": "Satvik Jain"
+  },
+  "description": "LinkRight, a local-first career OS distributed as one plugin: resume tailoring, interview prep, job hunt, LinkedIn content and outreach, portfolio, and a shared career memory every skill reads and writes.",
+  "plugins": [
+    {
+      "name": "linkright",
+      "source": {
+        "source": "github",
+        "repo": "satvik-jain-iitd/linkright-skills",
+        "ref": "release"
+      },
+      "description": "One install for the whole LinkRight career OS. 16 skills over a shared career memory at ~/.linkright. Built from canonical sources and published to the release branch by build.sh.",
+      "author": { "name": "Satvik Jain" },
+      "homepage": "https://github.com/satvik-jain-iitd/linkright-skills",
+      "keywords": ["career", "resume", "interview", "job-search", "linkedin", "personal-branding", "career-memory"]
+    }
+  ]
+}
