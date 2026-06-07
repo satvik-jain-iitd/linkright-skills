@@ -1,0 +1,45 @@
+# ~/.linkright/sage-voice.yaml — Sage TTS Configuration
+#
+# Default voice: Rishi (Indian English male, ships with macOS).
+# Sage uses macOS `say` as primary engine (Tier 2 in cascade).
+#
+# Engine cascade:
+#   Tier 1: kokoro-onnx (neural, free local — for future, no Indian voices in v0.19)
+#   Tier 2: macOS `say` / Linux `espeak-ng`  ← DEFAULT (has Rishi)
+#   Tier 3: pyttsx3 (Python wrapper)
+#   Tier 4: Gemini API (PAID quota, DISABLED by default)
+
+preferred_tier: 2
+
+voice_id: Rishi          # Indian English male (default). Ships with macOS.
+                         # Users can change to any installed macOS voice — see "Optional voices" below.
+
+speed: 1.0
+pitch: 0.0
+pause_before_pushback_seconds: 2.0
+
+emphasis_words:
+  - specifically
+  - tradeoff
+  - concrete
+  - constraint
+  - signal
+
+# Optional voices users can download via:
+#   System Settings → Accessibility → Spoken Content → System Voice → Manage Voices
+# - Veena (en_IN female premium)
+# - Lekha (hi_IN female, Hindi-tuned)
+# - Allison / Ava / Karen / Tessa (premium English voices)
+# After download, set voice_id above to the voice name and re-run Sage.
+
+# Tier-1 Kokoro (auto-installed by sage_setup.sh)
+kokoro:
+  model_path: ~/.cache/kokoro/kokoro-v0_19.onnx
+  voices_path: ~/.cache/kokoro/voices.bin
+  language: en-us
+
+# Tier-4 Gemini (PAID quota, opt-in only)
+gemini:
+  enabled: false
+  model: gemini-2.5-flash-preview-tts
+  api_key_env_var: GEMINI_API_KEY

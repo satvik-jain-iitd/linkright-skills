@@ -1,0 +1,52 @@
+# Knowledge loading manifest for linkright-network.
+# Two tiers, the must follow versus situational split from the Memory Contract.
+#
+#   always    loaded on every run, small, deterministic, never missed.
+#   retrieve  pulled only when the trigger mode fires, heavy, fetched on demand.
+#
+# This keeps the skill lean as the reference library grows. The career memory
+# (facts and strengths) is retrieved separately through the hybrid search in
+# linkright-mem/scripts/grep_memory.py, see Gate 0 in SKILL.md.
+
+always:
+  - id: absolute_rules
+    source: SKILL.md#absolute-rules
+    why: hard gates, never post or send without approval, no forbidden openers
+  - id: voice_profile
+    source: references/ref_01_voice_profile.md
+    why: grounded voice signals, forbidden phrases, hook signature, banned word swaps
+  - id: constraint_check
+    source: scripts/constraint_check_post.py
+    why: runs against user_setup.md before every delivery
+  - id: voice_score
+    source: scripts/voice_scorer.py
+    why: 0 to 10 rubric plus grounded signals, must pass before any draft is shown
+
+retrieve:
+  - id: post_templates
+    source: references/ref_02_post_templates.md
+    trigger: mode == post
+    scope: whole_file
+    why: POT and PM insight post structures, only needed when writing a post
+  - id: pot_library
+    source: references/ref_03_pot_library.md
+    trigger: mode == post
+    scope: query_only
+    why: growing library, pull only entries relevant to the topic, never the whole file
+  - id: linkedin_api
+    source: references/ref_04_linkedin_api.md
+    trigger: mode == schedule
+    scope: whole_file
+    why: API call shapes, only needed when the user asks to schedule a post
+  - id: cold_email_templates
+    source: references/ref_05_cold_email_templates.md
+    trigger: mode == outreach
+    scope: whole_file
+    why: cold email openings and asks, only needed in outreach mode
+
+# Career memory is not a flat file load. It is queried.
+career_memory:
+  retriever: ../linkright-mem/scripts/grep_memory.py
+  mode: hybrid_keyword_plus_optional_semantic
+  honour_credibility: true   # drop do_not_use, soften supporting_role_only and thin
+  see: SKILL.md#gate-0-load-career-memory-contract-aligned

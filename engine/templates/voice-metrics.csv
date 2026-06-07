@@ -1,0 +1,14 @@
+marker_type,marker,verbatim_example,approx_frequency,stability,source,notes
+# marker_type: function_word | sentence_length | burstiness | punctuation | signature_phrase | opener | closer | rhetorical | register | banned_word_in_raw | value_tell
+# register: most people have more than one, for example reflective long form versus quick operational. Capture each.
+# banned_word_in_raw: a word the owner uses naturally that the output config bans. Record the swap so the synthesizer can map it.
+# stability: stable (seen across many samples) | quirk (seen once) | thin (weak signal, flagged)
+# source: interview | chat | sample
+# Example rows below, the Stylometrist replaces these with real measures
+function_word,"just","i just shipped it, no meeting",high,stable,chat,used to cut ceremony
+sentence_length,"range 3 to 22 words","short punch then a long build",,stable,sample,does not average out
+burstiness,"high swing","one line. then a paragraph that runs.",,stable,sample,mixes very short and long
+punctuation,"comma and full stop only","no colon, no dash anywhere",,stable,sample,matches config writing_protocol
+signature_phrase,"i owned it","i owned the call, it broke, i fixed it",medium,stable,interview,ownership framing recurs
+opener,"states the friction first","the data was wrong, so",,stable,sample,leads with the problem
+closer,"flat, no call to action","that was it.",,stable,sample,ends without a sell

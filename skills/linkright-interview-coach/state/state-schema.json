@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mock Interview Session State",
+  "type": "object",
+  "required": ["schema_version", "session_id", "candidate", "round", "timing", "scoring_content", "behavior_log"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "UUID per session"
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["career_level"],
+      "properties": {
+        "profile_source": {"type": "string", "enum": ["linkright", "pdf", "conversational"]},
+        "career_level": {"type": "string", "enum": ["fresher", "early_career", "mid", "senior", "executive"]},
+        "career_years": {"type": "integer"},
+        "transition_phase": {"type": ["integer", "null"], "enum": [1, 2, 3, null]},
+        "domain_arc": {"type": ["string", "null"]},
+        "top_3_signals": {"type": "array", "items": {"type": "string"}, "minItems": 0, "maxItems": 3},
+        "absent_signals": {"type": "array", "items": {"type": "string"}},
+        "story_inventory": {"type": "array"},
+        "personalized_ceilings": {"type": "object"}
+      }
+    },
+    "round": {
+      "type": "object",
+      "required": ["id", "name", "problem_type", "question", "budget_seconds", "difficulty_bar"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 1, "maximum": 7},
+        "name": {"type": "string"},
+        "problem_type": {
+          "type": "object",
+          "required": ["id", "name"],
+          "properties": {
+            "id": {"type": "string"},
+            "name": {"type": "string"}
+          }
+        },
+        "question": {"type": "string"},
+        "budget_seconds": {"type": "integer", "minimum": 900, "maximum": 3000},
+        "difficulty_bar": {"type": "string"}
+      }
+    },
+    "mode": {
+      "type": "object",
+      "properties": {
+        "voice_output": {"type": "boolean", "default": false},
+        "voice_profile": {"type": "string", "default": "Rishi"},
+        "voice_speed": {"type": "number", "default": 1.0},
+        "tts_engine": {"type": "string", "enum": ["kokoro_onnx", "kokoro", "macos_say", "espeak_ng", "pyttsx3", "gemini"]}
+      }
+    },
+    "timing": {
+      "type": "object",
+      "required": ["interview_start_ts", "current_phase_idx", "phases"],
+      "properties": {
+        "interview_start_ts": {"type": "integer"},
+        "current_phase_idx": {"type": "integer", "minimum": 0},
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "budget_s", "status"],
+            "properties": {
+              "name": {"type": "string"},
+              "budget_s": {"type": "integer"},
+              "start_ts": {"type": ["integer", "null"]},
+              "end_ts": {"type": ["integer", "null"]},
+              "status": {"type": "string", "enum": ["pending", "in_progress", "done", "orange_cutoff", "red_cutoff"]}
+            }
+          }
+        },
+        "patience_tier": {"type": "string", "enum": ["green", "yellow", "orange", "red"]},
+        "tier_entered_ts": {"type": ["integer", "null"]},
+        "last_user_msg_ts": {"type": ["integer", "null"]},
+        "last_fire_ts": {"type": ["integer", "null"]}
+      }
+    },
+    "scoring_content": {
+      "type": "object",
+      "description": "Per-phase scoring from in-session Claude analysis",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "layer_a": {
+            "type": "object",
+            "properties": {
+              "safety": {"type": "integer", "minimum": 0, "maximum": 5},
+              "friction": {"type": "integer", "minimum": 0, "maximum": 5},
+              "trust": {"type": "integer", "minimum": 0, "maximum": 5},
+              "predictability": {"type": "integer", "minimum": 0, "maximum": 5},
+              "believability": {"type": "integer", "minimum": 0, "maximum": 5}
+            }
+          },
+          "layer_b": {
+            "type": "object",
+            "properties": {
+              "product_sense": {"type": "integer", "minimum": 0, "maximum": 5},
+              "execution": {"type": "integer", "minimum": 0, "maximum": 5},
+              "strategy": {"type": "integer", "minimum": 0, "maximum": 5},
+              "analytical": {"type": "integer", "minimum": 0, "maximum": 5},
+              "leadership": {"type": "integer", "minimum": 0, "maximum": 5},
+              "ai_judgment": {"type": "integer", "minimum": 0, "maximum": 5}
+            }
+          },
+          "layer_c_text_derivable": {
+            "type": "object",
+            "properties": {
+              "cognitive_clarity": {"type": "integer", "minimum": 0, "maximum": 5},
+              "pressure_management": {"type": "integer", "minimum": 0, "maximum": 5},
+              "interruption_handling": {"type": "integer", "minimum": 0, "maximum": 5}
+            }
+          },
+          "av_projection": {
+            "type": "object",
+            "properties": {
+              "word_count": {"type": "integer"},
+              "spoken_time_seconds": {"type": "integer"},
+              "ai_smell_density_pct": {"type": "number"},
+              "specificity_density_pct": {"type": "number"},
+              "hedge_density_pct": {"type": "number"},
+              "filler_density_per_100w": {"type": "number"},
+              "constraints_named": {"type": "integer"},
+              "tradeoffs_named": {"type": "integer"}
+            }
+          },
+          "personalized_ceiling": {"type": "number"},
+          "weighted_score": {"type": "number"},
+          "tradeoff_credits": {"type": "array", "items": {"type": "string"}},
+          "anti_pattern_flags": {"type": "array", "items": {"type": "string"}},
+          "notes": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "scoring_gemini": {
+      "type": "object",
+      "properties": {
+        "stage1_video": {"type": ["object", "null"]},
+        "stage2_audio": {"type": ["object", "null"]},
+        "stage3_transcript": {"type": ["object", "null"]},
+        "received_ts": {
+          "type": "object",
+          "properties": {
+            "stage1": {"type": ["integer", "null"]},
+            "stage2": {"type": ["integer", "null"]},
+            "stage3": {"type": ["integer", "null"]}
+          }
+        }
+      }
+    },
+    "behavior_log": {
+      "type": "object",
+      "required": ["yellow_nudges", "orange_interrupts", "hard_cutoffs", "ramble_count"],
+      "properties": {
+        "yellow_nudges": {"type": "integer", "minimum": 0},
+        "orange_interrupts": {"type": "integer", "minimum": 0},
+        "hard_cutoffs": {"type": "integer", "minimum": 0},
+        "ramble_count": {"type": "integer", "minimum": 0},
+        "stories_saved": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "verdict": {
+      "type": ["string", "null"],
+      "enum": ["STRONG HIRE", "HIRE", "LEAN HIRE", "NO HIRE", "STRONG NO", null]
+    },
+    "improvement_playbook": {"type": ["object", "null"]}
+  }
+}

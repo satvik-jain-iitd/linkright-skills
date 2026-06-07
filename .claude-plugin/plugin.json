@@ -1,0 +1,8 @@
+{
+  "name": "linkright",
+  "description": "LinkRight, a local-first career OS. One install for resume tailoring, interview prep, job hunt, LinkedIn content and outreach, portfolio, and a shared career memory that every skill reads and writes.",
+  "author": { "name": "Satvik Jain" },
+  "homepage": "https://github.com/satvik-jain-iitd/linkright-skills",
+  "repository": "https://github.com/satvik-jain-iitd/linkright-skills",
+  "keywords": ["career", "resume", "interview", "job-search", "linkedin", "personal-branding", "career-memory"]
+}
